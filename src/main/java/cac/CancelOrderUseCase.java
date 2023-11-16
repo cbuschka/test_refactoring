@@ -7,13 +7,17 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class CancelOrderUseCase  {
   private final OrderRepository orderRepository;
+  private final ReceiptGenerator receiptGenerator;
 
-  public void cancel(String orderNo, OffsetDateTime cancelledAt) {
+  public String cancel(String orderNo, OffsetDateTime cancelledAt) {
     Order order = orderRepository.findByOrderNo(orderNo).orElseThrow(
         () -> new NoSuchElementException("No order with orderNo=%s.".formatted(orderNo)));
 
-    Order cancelledOrder = order.cancel(cancelledAt);
+    String receipt = receiptGenerator.nextReceipt();
+    Order cancelledOrder = order.cancel(cancelledAt, receipt);
 
     orderRepository.save(cancelledOrder);
+
+    return cancelledOrder.cancellationReceipt();
   }
 }
